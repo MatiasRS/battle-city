@@ -42,6 +42,7 @@ var gameController = function(game)
     var killedEnemies;
     var tankBlinking;
     var isTimeFrozen;
+    var temporaryFireRate = 0;
     
     self.create = function()
     {
@@ -67,11 +68,11 @@ var gameController = function(game)
         gameFinished = false;
         isTimeFrozen = false;
         tankTypes = ["NormalEnemy", "FastEnemy", "BigEnemy"]; //Types of enemy tanks. Increase this list as new tank classes are added.
-        powerUpTypes = ["Invincible", "FreezeTime"]; //Types of power ups. Increase this list as new power up classes are added.
+        powerUpTypes = ["Invincible", "FreezeTime", "MachineGun"]; //Types of power ups. Increase this list as new power up classes are added.  
         bulletSpeed = BULLET_SPEED;
         nextSpawn = 0;
         nextPlayerSpawn = 0;
-        nextPowerUpSpawn = 10000;
+        nextPowerUpSpawn = 10000 + game.time.now;
         playerSpawnCooldown = 2000;
         enemiesSpawned = 0;
         timeToScoreScreen = 2000;
@@ -175,13 +176,16 @@ var gameController = function(game)
                         if(powerUp.type == "FreezeTime") //If the powerUp is freezeTime, activate it
                         {
                             freezeTime(powerUp);
-                            destroyPowerUp(powerUp);
                         }
                         else if(powerUp.type == "Invincible") //If the powerUp is invincible, activate it
                         {
                             setInvincible(tank, powerUp);
-                            destroyPowerUp(powerUp);
                         }    
+                        else if(powerUp.type == "MachineGun") //If the powerUp is machineGun, activate it
+                        {
+                            getMachineGun(tank, powerUp);
+                        } 
+                        destroyPowerUp(powerUp); //Destroy the power up after giving the effect to the player tank
                     }   
                 });
             }
@@ -255,7 +259,7 @@ var gameController = function(game)
         console.log("Invincibility: " + playerTank.invincibility);
 
         playerTank.tankSprite.addChild(playerTank.invincibilityStar);
-
+        gameLevel.updatePowerUpText("Invincibility");
         game.time.events.add(playerTank.invincibilityDuration, disableInvincibility, this, playerTank, playerTank.invincibilityStar); 
         
 
@@ -283,6 +287,7 @@ var gameController = function(game)
         tank.invincibility = false;
 
         invincibility.kill();
+        gameLevel.updatePowerUpText("Invincibility");
         console.log("Invincibility: " + tank.invincibility);
     }
 
@@ -731,7 +736,7 @@ var gameController = function(game)
     freezeTime = function(powerUp)
     {
         isTimeFrozen = true;
-        gameLevel.updateFrozenText();
+        gameLevel.updatePowerUpText("FreezeTime");
         console.log("Freeze time activated!");
         game.time.events.add(powerUp.freezeDuration, resumeTime, this); 
     }
@@ -740,7 +745,7 @@ var gameController = function(game)
     resumeTime = function()
     {
         isTimeFrozen = false;
-        gameLevel.updateFrozenText();
+        gameLevel.updatePowerUpText("FreezeTime");
     }
 
     setInvincible = function(tank, powerUp)
@@ -749,8 +754,24 @@ var gameController = function(game)
 
         tank.invincibilityStar.revive();
         tank.invincibilityStarTween.start();
+        gameLevel.updatePowerUpText("Invincibility");
         console.log("Invincible activated!");
-        game.time.events.add(powerUp.invincibilityDuration, disableInvincibility, this, playerTank, playerTank.invincibilityStar); 
+        game.time.events.add(powerUp.invincibilityDuration, disableInvincibility, this, tank, tank.invincibilityStar); 
+    }
+
+    getMachineGun = function(tank, powerUp)
+    {
+        temporaryFireRate = tank.fireRate;
+        tank.fireRate = powerUp.machineGunFireRate;
+        gameLevel.updatePowerUpText("MachineGun");
+        console.log("Machine gun activated!");
+        game.time.events.add(powerUp.lifespan, removeMachineGun, this, tank); 
+    }
+
+    removeMachineGun = function(tank)
+    {
+        tank.fireRate = temporaryFireRate;
+        gameLevel.updatePowerUpText("MachineGun");
     }
 
     return self;

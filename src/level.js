@@ -50,7 +50,7 @@ var level = function(game)
     self.eagles;
     self.gameOverText;
     self.gameWonText;
-    self.timeFrozenText;
+    self.powerUpText;
     self.EnemySpawnTweens = [];
     self.PlayerSpawnTweens = [];
     self.PlayerSpawnTween;
@@ -94,15 +94,28 @@ var level = function(game)
     }
 
     //Function that makes the time frozen! text appear or disappear
-    self.updateFrozenText = function()
+    self.updatePowerUpText = function(powerUpType)
     {
-        if(self.timeFrozenText.alpha == 0)
+        if(powerUpType == "FreezeTime")
         {
-            self.timeFrozenText.alpha = 100;
+            self.powerUpText.text = "Freeze time activated!";
+        }
+        else if(powerUpType == "MachineGun")
+        {
+            self.powerUpText.text = "Machine gun activated!";
+        }
+        else if(powerUpType == "Invincibility")
+        {
+            self.powerUpText.text = "Invincibility activated!";
+        }
+
+        if(self.powerUpText.alpha == 0)
+        {
+            self.powerUpText.alpha = 100;
         }
         else
         {
-            self.timeFrozenText.alpha = 0;
+            self.powerUpText.alpha = 0;
         }
     }
     
@@ -220,8 +233,8 @@ var level = function(game)
         self.gameWonText = game.add.sprite(game.world.centerX - 200, game.world.centerY - 200, "gameWon");
         self.gameWonText.alpha = 0;
 
-        self.timeFrozenText = game.add.text(game.world.centerX - 50, 20, "Time frozen!", style);
-        self.timeFrozenText.alpha = 0;
+        self.powerUpText = game.add.text(game.world.centerX - 50, 20, "Time frozen!", style);
+        self.powerUpText.alpha = 0;
     }
 
 
