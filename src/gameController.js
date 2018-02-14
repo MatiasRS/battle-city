@@ -117,78 +117,19 @@ var gameController = function(game)
         tankers.forEach(tank => 
         {
             //Enemy tanks automatically change direction when colliding against a steel wall
-            if(tank.type != "Player")
-            {
-                if(game.physics.arcade.collide(tank.tankSprite, gameLevel.steelWalls) == true)
-                {
-                    changeTankDirection(tank);
-                }
-            }
-            else
-            {
-                game.physics.arcade.collide(tank.tankSprite, gameLevel.steelWalls);
-            }
+            checkEnemyLevelCollision(tank);
+
             //Enemy tanks collide with each other, but not the playerTank
-            if(tank.type != "Player")
-            {
-                tankers.forEach(tank2 => 
-                {
-                    if(tank2.type != "Player")
-                    {
-                        game.physics.arcade.collide(tank.tankSprite, tank2.tankSprite);
-                    } 
-                });
-            }
+            checkTankOnTankCollision(tank);
+
             //Enemy tanks are only damaged by bullets fired by the playerTank. PlayerTank is damaged by bullets fired by the enemies.
-            bullets.forEach(bullet => 
-            {
-                if(game.physics.arcade.overlap(tank.tankSprite, bullet, containBullets, null, this) == true)
-                {
-                    if(tank.type == "Player" && playerKilled == false && tank.invincibility == false)
-                    {
-                        dealDamage(tank);
-                        destroyPlayerBullet(bullet);
-                        playerKilled = true;
-                    }
-                    else if(firedPlayerBullets.includes(bullet))
-                    {
-                        dealDamage(tank);
-                        destroyPlayerBullet(bullet);
-                    }          
-                }
-            }); 
+            checkTankDamage(tank);
+
             //The playerTank is killed by overlaping with the enemies. 
-            if(game.physics.arcade.overlap(tank.tankSprite, tanks, null, null, this) == true)
-            {
-                if(tank.type == "Player" && playerKilled == false && tank.invincibility == false)
-                {
-                    dealDamage(tank);
-                    playerKilled = true;
-                }   
-            }
+            checkPlayerTankOverlap(tank);
+
             //Only the playerTank can activate the powerUps
-            if(tank.type == "Player" && playerKilled == false)
-            {
-                powerUpObjects.forEach(powerUp => 
-                {
-                    if(game.physics.arcade.overlap(tank.tankSprite, powerUp.powerUpSprite, null, null, this) == true)
-                    {
-                        if(powerUp.type == "FreezeTime") //If the powerUp is freezeTime, activate it
-                        {
-                            freezeTime(powerUp);
-                        }
-                        else if(powerUp.type == "Invincible") //If the powerUp is invincible, activate it
-                        {
-                            setInvincible(tank, powerUp);
-                        }    
-                        else if(powerUp.type == "MachineGun") //If the powerUp is machineGun, activate it
-                        {
-                            getMachineGun(tank, powerUp);
-                        } 
-                        destroyPowerUp(powerUp); //Destroy the power up after giving the effect to the player tank
-                    }   
-                });
-            }
+            checkPlayerTankPowerUpPickUp(tank);
             
         }); //End foreach
 
@@ -197,6 +138,99 @@ var gameController = function(game)
         game.physics.arcade.overlap(gameLevel.steelWalls, bullets, containBulletsSteel, null, this);
         game.physics.arcade.overlap(bullets, bullets, destroyElement, null, this);
         game.physics.arcade.overlap(gameLevel.eagles, bullets, destroyElement, null, this);
+    }
+
+    //Function that checks whether an enemy has collided with a steel wall. In that case, it changes direction immediately.
+    checkEnemyLevelCollision = function(tank)
+    {
+        if(tank.type != "Player")
+        {
+            if(game.physics.arcade.collide(tank.tankSprite, gameLevel.steelWalls) == true)
+            {
+                changeTankDirection(tank);
+            }
+        }
+        else
+        {
+            game.physics.arcade.collide(tank.tankSprite, gameLevel.steelWalls);
+        }
+    }
+
+    //Function that keeps enemy tanks from overlaping with each other
+    checkTankOnTankCollision = function(tank)
+    {
+        if(tank.type != "Player")
+        {
+            tankers.forEach(tank2 => 
+            {
+                if(tank2.type != "Player")
+                {
+                    game.physics.arcade.collide(tank.tankSprite, tank2.tankSprite);
+                } 
+            });
+        }
+    }
+
+    //Function that registers enemy bullet damage vs the player and player bullet damage vs the enemies
+    checkTankDamage = function(tank)
+    {
+        bullets.forEach(bullet => 
+        {
+            if(game.physics.arcade.overlap(tank.tankSprite, bullet, containBullets, null, this) == true)
+            {
+                if(tank.type == "Player" && playerKilled == false && tank.invincibility == false)
+                {
+                    dealDamage(tank);
+                    destroyPlayerBullet(bullet);
+                    playerKilled = true;
+                }
+                else if(firedPlayerBullets.includes(bullet))
+                {
+                    dealDamage(tank);
+                    destroyPlayerBullet(bullet);
+                }          
+            }
+        }); 
+    }
+
+    //Function that damages the player if it overlaps with any enemy
+    checkPlayerTankOverlap = function(tank)
+    {
+        if(game.physics.arcade.overlap(tank.tankSprite, tanks, null, null, this) == true)
+        {
+            if(tank.type == "Player" && playerKilled == false && tank.invincibility == false)
+            {
+                dealDamage(tank);
+                playerKilled = true;
+            }   
+        }
+    }
+
+    //Function that allows only the player tank to pick up power ups
+    checkPlayerTankPowerUpPickUp = function(tank)
+    {
+        if(tank.type == "Player" && playerKilled == false)
+        {
+            powerUpObjects.forEach(powerUp => 
+            {
+                if(game.physics.arcade.overlap(tank.tankSprite, powerUp.powerUpSprite, null, null, this) == true && powerUp.isEnabled == true)
+                {
+                    if(powerUp.type == "FreezeTime") //If the powerUp is freezeTime, activate it
+                    {
+                        freezeTime(powerUp);
+                    }
+                    else if(powerUp.type == "Invincible") //If the powerUp is invincible, activate it
+                    {
+                        setInvincible(tank, powerUp);
+                    }    
+                    else if(powerUp.type == "MachineGun") //If the powerUp is machineGun, activate it
+                    {
+                        getMachineGun(tank, powerUp);
+                    } 
+                    destroyPowerUp(powerUp); //Destroy the power up after giving the effect to the player tank
+                }   
+            });
+        }
     }
 
     //Function that spawns a new tankPlayer as long as the current one is no alive. The spawners blink shortly before spawning it
@@ -263,9 +297,9 @@ var gameController = function(game)
         game.time.events.add(playerTank.invincibilityDuration, disableInvincibility, this, playerTank, playerTank.invincibilityStar); 
         
 
-        gameLevel.PlayerSpawnTweens[randomSpawn].alpha = 0;
-        gameLevel.PlayerSpawnTweens[randomSpawn].pause(0);
         
+        gameLevel.PlayerSpawnTweens[randomSpawn].pause(0);
+        //gameLevel.PlayerSpawnTweens[randomSpawn].updateTweenData(gameLevel.PlayerSpawnTweens[randomSpawn].alpha, 0);
     }
 
     //Function that creates a new enemy tank using the factory.
@@ -309,17 +343,30 @@ var gameController = function(game)
 
             var powerUp = factoryPowerUp.create(powerUpType, spawn, gameLevel, powerUps, game);
             powerUpObjects.push(powerUp);
+            powerUp.blinking.start(0);
 
-            //The death of the power up is queued
-            game.time.events.add(powerUp.lifespan, blinkPowerUp, this, powerUp); 
+            //The power up is initially disabled. Its enabling is queued
+            game.time.events.add(powerUp.blinkTime, enablePowerUp, this, powerUp); 
+
+            
         }
+    }
+
+    //Intermediate function that enables the power up, making it stop blinking
+    enablePowerUp = function(powerUp) 
+    {
+        powerUp.isEnabled = true;
+        powerUp.blinking.pause(0);
+
+        //The death of the power up is queued
+        game.time.events.add(powerUp.lifespan, blinkPowerUp, this, powerUp); 
     }
 
     //Intermediate function that makes the power up blink before it's destroyed
     blinkPowerUp = function(powerUp) 
     {
         console.log("Blinking... ");
-        powerUp.blinking.start(0);
+        powerUp.blinking.resume(0);
         game.time.events.add(powerUp.blinkTime, destroyPowerUp, this, powerUp); 
     }
 
@@ -751,7 +798,7 @@ var gameController = function(game)
     setInvincible = function(tank, powerUp)
     {
         tank.invincibility = true;
-
+        //tank.invincibilityDuration = powerUp.invincibilityDuration;
         tank.invincibilityStar.revive();
         tank.invincibilityStarTween.start();
         gameLevel.updatePowerUpText("Invincibility");

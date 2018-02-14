@@ -13,7 +13,7 @@ var invincible = function(powerUpType, location, gameLevel, powerUpGroup, sprite
     this.game = game;
 
     //The invincible power up makes the player tank invincible for a set duration
-    this.invincibilityDuration = 2000;
+    this.invincibilityDuration = 3600;
 
     //console.log(tankGroup);
     powerUp.call(this, powerUpType, location, gameLevel, powerUpGroup, sprite, game);

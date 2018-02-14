@@ -2,6 +2,7 @@ var powerUp = function(powerUpType, location, gameLevel, powerUpGroup, sprite, g
 {
     this.lifespan = 5000;
     this.blinkTime = 2000;
+    this.isEnabled = false;
     this.type = powerUpType;
     this.location = location; 
     this.gameLevel = gameLevel;

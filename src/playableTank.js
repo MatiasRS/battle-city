@@ -6,7 +6,7 @@ var playableTank = function(tankType, location, gameLevel, tankGroup, sprite, ga
     console.log("%cCreating new playable tank...", "color:white; background:red");
     
     this.invincibility = true;
-    this.invincibilityDuration = 2000;
+    this.invincibilityDuration = 3600;
     this.fireRate = 350;
     this.type = tankType;
     this.location = location; 
